@@ -1,6 +1,6 @@
 // Service worker: makes the app work offline.
 // Bump CACHE_VERSION whenever you change any cached file so users get the update.
-const CACHE_VERSION = 'v2';
+const CACHE_VERSION = 'v3';
 const CACHE = 'qr-generator-' + CACHE_VERSION;
 const SHELL = [
   './',

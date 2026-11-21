@@ -164,6 +164,28 @@
     background: linear-gradient(135deg, var(--accent), var(--accent-2)); box-shadow: 0 6px 16px rgba(79, 70, 229, .28); }
   .actions button:disabled { opacity: .45; cursor: not-allowed; box-shadow: none; }
 
+  /* print helper */
+  .printbox { border-top: 1px solid var(--border); padding-top: 14px; display: flex; flex-direction: column; gap: 8px; }
+  .printbox .row { display: grid; grid-template-columns: 1fr auto; gap: 8px; align-items: end; }
+  .printbox label { margin: 0 0 6px; }
+  .printbox .hint { margin: 0; }
+  .printbox .hint.warn { color: var(--danger); font-weight: 500; }
+  .printbox button { display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 11px 16px; border-radius: 12px; border: 1px solid var(--border-strong);
+    background: var(--surface); color: var(--text); cursor: pointer; font: inherit; font-weight: 600; font-size: .95rem; white-space: nowrap; transition: transform .1s, border-color .15s; }
+  .printbox button:hover:not(:disabled) { border-color: var(--accent); }
+  .printbox button:active:not(:disabled) { transform: scale(.98); }
+  .printbox button:disabled { opacity: .45; cursor: not-allowed; }
+
+  /* print-only layout: just the QR at the chosen physical size */
+  #printArea { display: none; }
+  @media print {
+    @page { margin: 15mm; }
+    html, body { background: #fff !important; }
+    body > *:not(#printArea) { display: none !important; }
+    #printArea { display: block !important; }
+    #printArea img { display: block; width: var(--print-size, 4cm); height: var(--print-size, 4cm); margin: 0 auto; }
+  }
+
   /* FAQ */
   .faq { margin-top: 28px; }
   .faq h2 { font-size: 1.15rem; margin: 0 0 12px; }
@@ -190,7 +212,9 @@
   <symbol id="i-download" viewBox="0 0 24 24"><path d="M12 3v12m0 0-4-4m4 4 4-4M5 21h14"/></symbol>
   <symbol id="i-file" viewBox="0 0 24 24"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/></symbol>
   <symbol id="i-copy" viewBox="0 0 24 24"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V6a2 2 0 0 1 2-2h9"/></symbol>
+  <symbol id="i-print" viewBox="0 0 24 24"><path d="M6 9V3h12v6"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><path d="M6 14h12v7H6z"/></symbol>
 </svg>
+<div id="printArea" aria-hidden="true"><img id="printImg" alt="QR Code สำหรับพิมพ์"></div>
 
 <main>
   <header class="hero">
@@ -341,6 +365,25 @@
         <button type="button" id="dlSvg" disabled><svg class="i"><use href="#i-file"/></svg>SVG</button>
         <button type="button" id="copy" disabled><svg class="i"><use href="#i-copy"/></svg>คัดลอกรูป</button>
       </div>
+      <div class="printbox">
+        <div class="row">
+          <div>
+            <label for="printSize">ขนาดที่จะพิมพ์ <small>(รวมขอบขาว)</small></label>
+            <select id="printSize">
+              <option value="2">2 ซม.</option>
+              <option value="3">3 ซม.</option>
+              <option value="4" selected>4 ซม.</option>
+              <option value="5">5 ซม.</option>
+              <option value="6">6 ซม.</option>
+              <option value="8">8 ซม.</option>
+              <option value="10">10 ซม.</option>
+              <option value="15">15 ซม.</option>
+            </select>
+          </div>
+          <button type="button" id="printBtn" disabled><svg class="i"><use href="#i-print"/></svg>พิมพ์ / PDF</button>
+        </div>
+        <p class="hint" id="printHint">ในหน้าต่างพิมพ์ให้เลือกมาตราส่วน <b>100%</b> และปิดโหมดประหยัดหมึก เลือกปลายทาง "บันทึกเป็น PDF" ได้</p>
+      </div>
     </aside>
   </div>
 
@@ -351,7 +394,7 @@
       <summary>ทำอย่างไรให้สแกนติดง่าย?</summary>
       <div class="ans"><ul>
         <li>ใช้สี QR <b>เข้มกว่า</b>พื้นหลังเสมอ และอย่าสลับสี</li>
-        <li>เมื่อพิมพ์ ให้ QR กว้างอย่างน้อย <b>2 ซม.</b> และเว้นขอบขาวรอบๆ</li>
+        <li>เมื่อพิมพ์ ให้ QR กว้างอย่างน้อย <b>2–3 ซม.</b> และเว้นขอบขาวรอบๆ — ใช้ปุ่ม <b>"พิมพ์ / PDF"</b> เพื่อพิมพ์ตามขนาดจริงที่เลือก (ตั้งมาตราส่วน 100%)</li>
         <li>ข้อมูลสั้นลง จุดจะน้อยและใหญ่ขึ้น สแกนง่ายขึ้น</li>
         <li><b>สแกนทดสอบ</b>จากภาพที่ดาวน์โหลดหรือกระดาษที่พิมพ์ก่อนใช้จริงเสมอ</li>
       </ul></div>
@@ -541,7 +584,7 @@ var qrcode=function(){function i(t,r){function a(t,r){g=function(t){for(var r=ne
 
   function render() {
     const box = $('qrbox');
-    const btns = [$('dlPng'), $('dlSvg'), $('copy')];
+    const btns = [$('dlPng'), $('dlSvg'), $('copy'), $('printBtn')];
     if (!window.qrcode) {
       matrix = null;
       box.innerHTML = '<span class="empty">ไม่สามารถสร้างได้</span>';
@@ -574,6 +617,7 @@ var qrcode=function(){function i(t,r){function a(t,r){g=function(t){for(var r=ne
     if (!cv) { box.innerHTML = ''; cv = document.createElement('canvas'); box.appendChild(cv); }
     drawTo(cv, 512);
     btns.forEach(b => b.disabled = false);
+    updatePrintHint();
     const warn = contrastWarning();
     if (warn) setMsg(warn, true);
     else if (urlFixed) setMsg('เติม https:// ให้อัตโนมัติ: ' + data);
@@ -606,6 +650,31 @@ var qrcode=function(){function i(t,r){function a(t,r){g=function(t){for(var r=ne
     } catch (e) {
       setMsg('เบราว์เซอร์นี้ไม่รองรับการคัดลอกรูป — ใช้ปุ่มดาวน์โหลดแทน', true);
     }
+  };
+
+  // Printing: show only the QR (as vector SVG) at the chosen physical size, then open the print dialog.
+  const PRINT_DEFAULT_HINT = 'ในหน้าต่างพิมพ์ให้เลือกมาตราส่วน <b>100%</b> และปิดโหมดประหยัดหมึก เลือกปลายทาง "บันทึกเป็น PDF" ได้';
+  function updatePrintHint() {
+    const h = $('printHint');
+    if (!matrix) { h.className = 'hint'; h.innerHTML = PRINT_DEFAULT_HINT; return; }
+    const total = matrix.length + QUIET * 2;
+    const modMm = (+$('printSize').value * 10) / total; // width of one QR dot on paper
+    if (modMm < 0.4) {
+      h.className = 'hint warn';
+      h.textContent = 'จุดแต่ละจุดกว้างเพียง ~' + modMm.toFixed(2) + ' มม. เล็กเกินไป อาจสแกนไม่ติด — เลือกขนาดใหญ่ขึ้น';
+    } else {
+      h.className = 'hint';
+      h.innerHTML = 'จุดแต่ละจุดกว้าง ~' + modMm.toFixed(2) + ' มม. (ขนาดนี้สแกนได้) · ' + PRINT_DEFAULT_HINT;
+    }
+  }
+  $('printSize').addEventListener('change', updatePrintHint);
+  $('printBtn').onclick = async () => {
+    if (!matrix) return;
+    const img = $('printImg');
+    img.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svgString());
+    document.documentElement.style.setProperty('--print-size', $('printSize').value + 'cm');
+    try { await img.decode(); } catch (e) {}
+    window.print();
   };
 
   document.querySelectorAll('.tabs button').forEach(b => b.onclick = () => {
